@@ -44,6 +44,12 @@ app.use('/api/v1/contact', contactRoutes)
 app.use('/api/v1/auth', userRoutes)
 app.use('/api/v1/youtube', youtubeRoutes)
 
+app.use(cors({
+    origin: "https://navjeevankendra.webcraftersinfotech.in/", // Replace with your frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
+
 
 // Serve static files from the "uploads" directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
