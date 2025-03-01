@@ -14,8 +14,8 @@ const programSchema = mongoose.Schema({
         required: true, // Program description is required
     },
     p_image: {
-        type: String, // Path or URL of the uploaded image
-        required: true, // Image is required
+        data: Buffer, // Path or URL of the uploaded image
+        contentType: String, // Image is required
     },
 });
 

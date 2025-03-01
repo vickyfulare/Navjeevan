@@ -6,14 +6,15 @@ const gallerySchema = mongoose.Schema({
         required: true, // Gallery name is required
     },
     g_image: {
-        type: String, // Image stored as a string (URL or base64)
-        required: true, // Image is required
+        data: Buffer,
+        contentType: String,
     },
     date: {
         type: String, // Date stored as a string in "DD-MM-YYYY" format
         required: true, // Date is required
     },
 });
+
 
 // Create and export the Gallery model
 const Gallery = mongoose.model('Gallery', gallerySchema);

@@ -1,18 +1,16 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const videoSchema = mongoose.Schema({
+const videoSchema = new mongoose.Schema({
     vname: {
         type: String,
-        required: true, // Video name is required
+        required: true,
     },
-    v_video: {
-        type: String, // Video stored as a string (URL or file path)
-        required: true, // Video is required
+    videoUrl: {
+        type: String, // Store video URL instead of binary data
+        required: true,
     },
+}, { timestamps: true });
 
-}, { timestamp: true });
-
-// Create and export the Video model
-const Video = mongoose.model('Video', videoSchema);
+const Video = mongoose.model("Video", videoSchema);
 
 export default Video;

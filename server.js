@@ -3,6 +3,9 @@ import colors from 'colors';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
+import fileUpload from "express-fileupload";
+import { v2 as cloudinary } from "cloudinary";
+
 import connectDB from './config/connectDB.js';
 import programRoutes from './routes/programroutes.js';
 import galleryRoutes from './routes/galleryroutes.js'
@@ -28,6 +31,7 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+//app.use(fileUpload({ useTempFiles: true }));
 
 // Define __dirname for ES6 modules
 const __filename = fileURLToPath(
@@ -44,11 +48,25 @@ app.use('/api/v1/contact', contactRoutes)
 app.use('/api/v1/auth', userRoutes)
 app.use('/api/v1/youtube', youtubeRoutes)
 
+// ✅ Cloudinary Config
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+
 app.use(cors({
-    origin: "https://navjeevankendra.webcraftersinfotech.in/", // Replace with your frontend URL
+    origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
+// app.use(cors({
+//     //origin: "https://navjeevankendra.webcraftersinfotech.in/", // Replace with your frontend URL
+//     origin: "*",
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//     credentials: true
+// }));
 
 
 // Serve static files from the "uploads" directory

@@ -1,7 +1,7 @@
 import express from 'express'
 import formidable from 'express-formidable';
 import upload from '../middlewares/upload.js';
-import { createGalleryController, deleteGalleryController, getAllGalleryController } from '../controllers/gallerycontroller.js';
+import { createGalleryController, deleteGalleryController, getAllGalleryController, getGalleryImageController } from '../controllers/gallerycontroller.js';
 import multer from 'multer';
 import path from 'path';
 
@@ -32,10 +32,12 @@ const gallery_upload = multer({
 }).single('g_image'); // 'g_image' is the form field name in Postman
 
 // Routes for Post
-router.post('/create-gallery', gallery_upload, createGalleryController)
+router.post('/create-gallery', formidable(), createGalleryController)
 
 // Route to get all gallery records
 router.get('/get-gallery', getAllGalleryController);
+router.get('/get-gallery/:id', getGalleryImageController);
+
 
 router.delete('/delete-gallery/:id', deleteGalleryController);
 

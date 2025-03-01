@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import formidable from 'express-formidable';
 import { createVideoController, deleteVideoController, getAllVideosController } from '../controllers/videoscontroller.js';
 //import { createGalleryController, deleteGalleryController, getAllGalleryController } from '../controllers/gallerycontroller.js';
 //import { createVideoController, deleteVideoController, getAllVideosController } from '../controllers/videocontroller.js'; // import video controllers
@@ -37,10 +38,14 @@ const gallery_upload = multer({
 
 // Routes for Video Handling
 
-router.post('/create-video', gallery_upload, createVideoController); // Uses same multer setup for video upload
+const upload = multer({ storage: multer.diskStorage({}) });
+
+router.post('/create-video', upload.single("file"), createVideoController); // Uses same multer setup for video upload
 
 // Route to get all video records
 router.get('/get-videos', getAllVideosController);
+
+// router.get('/get-videos-video/:id', getVideoController);
 
 // Route to delete a video entry by ID
 router.delete('/delete-video/:id', deleteVideoController);

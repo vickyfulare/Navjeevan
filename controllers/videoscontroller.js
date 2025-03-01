@@ -1,63 +1,86 @@
-import Video from "../models/videosmodel.js"; // Import the video schema
+import Video from "../models/videosmodel.js";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+import multer from "multer";
+import dotenv from 'dotenv'
+// ✅ Multer Storage (For Handling File Upload)
+const storage = multer.diskStorage({});
+const upload = multer({ storage });
 
-// Controller to create a new video entry
+dotenv.config();
+
+// ✅ Cloudinary Configuration
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+
+// ✅ Upload Video to Cloudinary & Save to MongoDB
 export const createVideoController = async(req, res) => {
-    const { vname } = req.body;
-
-    // Ensure that required fields are present and the video file is uploaded
-    if (!vname || !req.file) {
-        return res.status(400).json({ message: 'All fields are required, including a video file' });
-    }
-
     try {
-        // Create a new video entry with the data received and the video file path
-        const newVideo = new Video({
-            vname,
-            v_video: req.file.path, // Save the file path of the uploaded video
-        });
+        console.log("Received Request:", req.body, req.file);
 
-        // Save the new video entry in the database
-        const savedVideo = await newVideo.save();
+        const { vname, videoUrl } = req.body;
 
-        // Respond with the saved video entry
-        res.status(201).json(savedVideo);
-    } catch (error) {
-        // Handle errors during the save process
-        res.status(500).json({ message: 'Server error', error });
-    }
-};
-
-// Controller to fetch all video entries
-export const getAllVideosController = async(req, res) => {
-    try {
-        // Fetch all video records from the database
-        const videos = await Video.find();
-
-        // Respond with the fetched video records
-        res.status(200).json(videos);
-    } catch (error) {
-        // Handle any errors during the fetch process
-        res.status(500).json({ message: 'Server error', error });
-    }
-};
-
-// Controller to delete a video entry by ID
-export const deleteVideoController = async(req, res) => {
-    const { id } = req.params;
-
-    try {
-        // Find the video entry by ID and delete it
-        const deletedVideo = await Video.findByIdAndDelete(id);
-
-        // If no video entry is found, return an error response
-        if (!deletedVideo) {
-            return res.status(404).json({ message: "Video entry not found" });
+        if (!vname || !videoUrl) {
+            return res.status(400).json({ message: "All fields are required." });
         }
 
-        // Respond with success message
-        res.status(200).json({ message: "Video entry deleted successfully" });
+        const newVideo = new Video({ vname, videoUrl });
+        await newVideo.save();
+
+        res.status(201).json({ message: "Video uploaded successfully!", video: newVideo });
+
     } catch (error) {
-        // Handle any errors during the delete process
-        res.status(500).json({ message: "Server error", error });
+        console.error("Error uploading video:", error);
+        res.status(500).json({ message: "Server error. Try again later." });
+    }
+};
+// ✅ Get All Videos
+export const getAllVideosController = async(req, res) => {
+    try {
+        const videos = await Video.find().sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            message: "Videos fetched successfully",
+            videos,
+        });
+    } catch (error) {
+        console.error("Error fetching videos:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching videos",
+            error: error.message,
+        });
+    }
+};
+
+// ✅ Delete Video from Cloudinary & MongoDB
+export const deleteVideoController = async(req, res) => {
+    try {
+        const video = await Video.findById(req.params.id);
+        if (!video) {
+            return res.status(404).json({ success: false, message: "Video not found" });
+        }
+
+        // ✅ Extract Cloudinary public_id and delete from Cloudinary
+        const publicId = video.videoUrl.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(`videos/${publicId}`, { resource_type: "video" });
+
+        // ✅ Delete from MongoDB
+        await Video.findByIdAndDelete(req.params.id);
+        res.status(200).json({
+            success: true,
+            message: "Video deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting video:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error deleting video",
+            error: error.message,
+        });
     }
 };
